@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Label {
+  id     Int           @id @default(autoincrement())
+  title  String        @db.VarChar(255)
+  meales LabelOnMeal[]
+}
+
+model LabelOnMeal {
+  meal       Meal     @relation(fields: [mealId], references: [id])
+  mealId     Int
+  label      Label    @relation(fields: [labelId], references: [id])
+  labelId    Int
+  assignedAt DateTime @default(now())
+
+  @@id([mealId, labelId])
+}
+
+model Meal {
+  id          Int           @id @default(autoincrement())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  title       String        @db.VarChar(255)
+  starter     String?       @db.VarChar(255)
+  desert      String?       @db.VarChar(255)
+  description String?
+  published   Boolean       @default(false)
+  labels      LabelOnMeal[]
+  drinks      DrinkOnMeal[]
+}
+
+model DrinkOnMeal {
+  meal       Meal     @relation(fields: [mealId], references: [id])
+  mealId     Int
+  drink      Drink    @relation(fields: [drinkId], references: [id])
+  drinkId    Int
+  assignedAt DateTime @default(now())
+
+  @@id([mealId, drinkId])
+}
+
+model Drink {
+  id     Int           @id @default(autoincrement())
+  title  String        @db.VarChar(255)
+  meales DrinkOnMeal[]
+}
