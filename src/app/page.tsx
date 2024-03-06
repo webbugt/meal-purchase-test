@@ -1,5 +1,5 @@
 import Image from "next/image";
-import prisma from "../db";
+import prisma from "@/lib/db";
 export default async function Home() {
   
   const availableMeals = await prisma.meal.findMany();
