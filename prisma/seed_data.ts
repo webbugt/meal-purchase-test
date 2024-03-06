@@ -5,7 +5,9 @@ export const labelsData = [
     "Chicken",
     "Beef",
     "Vegetarian",
-    "Breakfast"
+    "Breakfast",
+    "Lunch",
+    "Dinner"
   ]
 
 export const drinksData = [
@@ -20,8 +22,15 @@ export const drinksData = [
     {
       "title": "Beer",
       "price": 6.99
+    },
+    {
+      "title": "Water",
+      "price": 1.99
+    },
+    {
+      "title": "Soda",
+      "price": 3.99
     }
-  
 ]
 
 
@@ -129,6 +138,19 @@ export const mealsData = [
       "img": "https://source.unsplash.com/N0u8bLrB_-g",
       "drinks": [
          "Vine"
+      ]
+    },
+    {
+      "title": "2 course Chicken 4",
+      "starter": "Lorem Ipsum",
+      "price": 39.99,
+      "labels": [
+        "Chicken", "Lunch"
+      ],
+      "img": "https://source.unsplash.com/N0u8bLrB_-g",
+      "drinks": [
+         "Vine",
+         "Soda"
       ]
     }
   ]
