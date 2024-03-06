@@ -16,6 +16,7 @@ datasource db {
 model Label {
   id     Int           @id @default(autoincrement())
   title  String        @db.VarChar(255)
+  img    String?
   meales LabelOnMeal[]
 }
 
@@ -38,6 +39,8 @@ model Meal {
   desert      String?       @db.VarChar(255)
   description String?
   published   Boolean       @default(false)
+  img         String?
+  price       Float
   labels      LabelOnMeal[]
   drinks      DrinkOnMeal[]
 }
@@ -55,5 +58,7 @@ model DrinkOnMeal {
 model Drink {
   id     Int           @id @default(autoincrement())
   title  String        @db.VarChar(255)
+  img    String?
+  price  Float
   meales DrinkOnMeal[]
 }
