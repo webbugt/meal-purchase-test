@@ -1,21 +1,23 @@
-import Image from "next/image";
-import prisma from "@/lib/db";
-export default async function Home() {
-  
-  const availableMeals = await prisma.meal.findMany();
+import Image from 'next/image'
+import { getMeals } from './actions'
+export default async function Home () {
+  const availableMeals = await getMeals()
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
+
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         {availableMeals.map((meal) => {
           return (
             <div key={meal.id} className="flex flex-col w-full p-4 border border-gray-300 rounded-xl bg-white dark:border-neutral-800 dark:bg-zinc-800/30 lg:w-1/4 lg:dark:bg-zinc-800/30">
-              {meal.img? <Image
+              {meal.img
+                ? <Image
                 src={meal.img}
                 alt={meal.title}
                 width={300}
                 height={200}
                 className="rounded-t-xl"
-              />:null}
+              />
+                : null}
               <div className="flex flex-col p-4">
                 <h2 className="text-xl font-semibold">{meal.title}</h2>
                 <p className="m-0 text-sm opacity-50">
@@ -24,9 +26,9 @@ export default async function Home() {
                 <p className="m-0 font-bold">${meal.price}</p>
               </div>
             </div>
-          );
+          )
         })}
-        
+
         {/* <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
           Get started by editing&nbsp;
           <code className="font-mono font-bold">src/app/page.tsx</code>
@@ -132,5 +134,5 @@ export default async function Home() {
         </a> */}
       </div>
     </main>
-  );
+  )
 }
