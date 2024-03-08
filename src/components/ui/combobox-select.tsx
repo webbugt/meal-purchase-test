@@ -19,14 +19,24 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 
-type ComboBoxOption = { value: string, label: string }
+type ComboBoxSelectOption = { value: string, label: string }
+
+const VALUE_SEPARATOR = '%%|%%'
+type CBSelectEncodedValue = `${string}${typeof VALUE_SEPARATOR}${string}`
+const encodeOption = (option: ComboBoxSelectOption):CBSelectEncodedValue => `${option.value}${VALUE_SEPARATOR}${option.label}`
+const decodeOption = (encoded:CBSelectEncodedValue|string):ComboBoxSelectOption => {
+  const [value, label] = encoded.split(VALUE_SEPARATOR)
+  return { label, value }
+}
 
 type ComboBoxSelectPropsCommon ={
   onChange: (...event: any[]) => void;
   onBlur?: Noop;
   disabled?: boolean;
   name?: string;
-  options: ComboBoxOption[]
+  options: ComboBoxSelectOption[];
+  selectedRender?: (option:ComboBoxSelectOption) => React.ReactNode | string;
+  optionRender?: (option:ComboBoxSelectOption, isSelected: boolean) => React.ReactNode | string;
 }
 
 type ComboBoxSelectProps = {
@@ -37,15 +47,8 @@ type ComboBoxSelectProps = {
   value?: string[];
   single: false
 } & ComboBoxSelectPropsCommon
-const VALUE_SEPARATOR = '%%|%%'
-type EncodedValue = `${string}${typeof VALUE_SEPARATOR}${string}`
-const encodeOption = (option: ComboBoxOption):EncodedValue => `${option.value}${VALUE_SEPARATOR}${option.label}`
-const decodeOption = (encoded:EncodedValue|string):ComboBoxOption => {
-  const [value, label] = encoded.split(VALUE_SEPARATOR)
-  return { label, value }
-}
 
-export const ComboBoxSelect = ({ value, options, onChange, single }:ComboBoxSelectProps) => {
+export const ComboBoxSelect = ({ value, options, onChange, single, selectedRender, optionRender }:ComboBoxSelectProps) => {
   const [open, setOpen] = useState(false)
   const [internalValue, setInternalValue] = useState<string[]>(typeof value === 'string' ? [value] : (value || []))
   useEffect(() => {
@@ -57,7 +60,7 @@ export const ComboBoxSelect = ({ value, options, onChange, single }:ComboBoxSele
     }
   }, [value])
 
-  const onSelect = useCallback((currentValueJoined:EncodedValue|string) => {
+  const onSelect = useCallback((currentValueJoined:CBSelectEncodedValue|string) => {
     const { value: currentValue } = decodeOption(currentValueJoined)
     console.log({ currentValue })
     setOpen(false)
@@ -87,17 +90,24 @@ export const ComboBoxSelect = ({ value, options, onChange, single }:ComboBoxSele
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="min-w-[200px] max-w-[400px] flex-wrap h-auto justify-start"
+          className="min-w-[200px] max-w-[400px] flex-wrap h-auto justify-start gap-2"
         >
           <ChevronsUpDown className="ml-0 mr-2 h-4 w-4 shrink-0 opacity-50" />
-          {(internalValue.length ? internalValue : ['']).map((val, index, arr) => (
-            <React.Fragment key={val}>
-              <span>
-                {options.find((option) => option.value === val)?.label || 'Select an option...'}
-              </span>
-            {(index < (arr.length - 1)) && <Separator orientation="vertical" className="mx-3 h-4" />}
-            </React.Fragment>
-          ))}
+          {(internalValue.length ? internalValue : ['']).map((val, index, arr) => {
+            const option = options.find((option) => option.value === val) || { value: '', label: 'Select an option...' }
+            return (
+              <React.Fragment key={val}>
+                {typeof selectedRender === 'function' && option.value
+                  ? selectedRender(option)
+                  : <>
+                  <span>
+                    {option.label}
+                  </span>
+                  {(index < (arr.length - 1)) && <Separator orientation="vertical" className="mx-3 h-4" />}
+                </>}
+              </React.Fragment>
+            )
+          })}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start">
@@ -105,21 +115,23 @@ export const ComboBoxSelect = ({ value, options, onChange, single }:ComboBoxSele
           <CommandInput placeholder="Search option..." />
           <CommandEmpty>No option found.</CommandEmpty>
           <CommandGroup>
-            {options.map((option) => (
-              <CommandItem
-                key={option.value}
-                value={encodeOption(option)} // search works based on value, that's why we encode it like this
-                onSelect={onSelect}
-              >
-                <Check
-                  className={cn(
-                    'mr-2 h-4 w-4',
-                    internalValue.includes(option.value) ? 'opacity-100' : 'opacity-0'
-                  )}
-                />
-                {option.label}
-              </CommandItem>
-            ))}
+            {options.map((option) => {
+              const isSelected = internalValue.includes(option.value)
+
+              return (<CommandItem
+                  key={option.value}
+                  value={encodeOption(option)} // search works based on value, that's why we encode it like this
+                  onSelect={onSelect}
+                >
+                  <Check
+                    className={cn(
+                      'mr-2 h-4 w-4',
+                      isSelected ? 'opacity-100' : 'opacity-0'
+                    )}
+                  />
+                  {typeof optionRender === 'function' ? optionRender(option, isSelected) : option.label}
+                </CommandItem>)
+            })}
           </CommandGroup>
         </Command>
       </PopoverContent>

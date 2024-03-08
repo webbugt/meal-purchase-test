@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { ComboBoxSelect } from '../ui/combobox-select'
+import { Badge } from '../ui/badge'
 
 const createOptionalStringSchema = (minLength: number = 5, message = `Min length is ${minLength}`) => z
   .union([z.string().length(0), z.string().min(minLength, {
@@ -154,7 +155,12 @@ export function MealForm ({ values, onSubmit: onSubmitInput, drinkOptions, label
             <FormItem>
               <FormLabel>Meal labels</FormLabel>
               <FormControl>
-                <ComboBoxSelect single={false} value={field.value?.map(x => x.toString())} onChange={field.onChange} options={labelOptions} />
+                <ComboBoxSelect
+                  single={false}
+                  value={field.value?.map(x => x.toString())}
+                  onChange={field.onChange}
+                  options={labelOptions}
+                  selectedRender={({ value, label }) => <Badge>{label}</Badge>}/>
               </FormControl>
               <FormMessage />
             </FormItem>
