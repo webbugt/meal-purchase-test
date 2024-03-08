@@ -37,7 +37,10 @@ type ComboBoxSelectPropsCommon ={
   options: ComboBoxSelectOption[];
   selectedRender?: (option:ComboBoxSelectOption) => React.ReactNode | string;
   optionRender?: (option:ComboBoxSelectOption, isSelected: boolean) => React.ReactNode | string;
+  hotkey?: string[];
 }
+
+const DEFAULT_HOTKEY = ['Shift']
 
 type ComboBoxSelectProps = {
     value?: string;
@@ -48,43 +51,79 @@ type ComboBoxSelectProps = {
   single: false
 } & ComboBoxSelectPropsCommon
 
-export const ComboBoxSelect = ({ value, options, onChange, single, selectedRender, optionRender }:ComboBoxSelectProps) => {
+export const ComboBoxSelect = ({ value, options, onChange, single, selectedRender, optionRender, hotkey = DEFAULT_HOTKEY, onBlur }:ComboBoxSelectProps) => {
   const [open, setOpen] = useState(false)
+  const [inFocus, setInFocus] = useState(false)
+  const handleFocusChange = useCallback((focus:boolean) => {
+    setInFocus(focus)
+    if (typeof onBlur === 'function' && !focus) onBlur()
+  }, [onBlur])
+
   const [internalValue, setInternalValue] = useState<string[]>(typeof value === 'string' ? [value] : (value || []))
   useEffect(() => {
-    console.log('combobox new value', value)
     if (typeof value === 'string') {
       setInternalValue([value])
-    } else {
-      setInternalValue(value || [])
+      return
     }
+    setInternalValue(Array.isArray(value) ? value : [])
   }, [value])
+
+  const [keepOpenHotkeyDown, setKeepOpenHotkeyDown] = useState(false)
+  useEffect(() => {
+    console.log('keepOpenHotkeyDown', { keepOpenHotkeyDown, inFocus })
+  }, [keepOpenHotkeyDown, inFocus])
+
+  const handleOpenChange = useCallback((popoverOpen: boolean) => {
+    setOpen(previous => {
+      if (!previous) return true
+      if (popoverOpen) return true
+      if (keepOpenHotkeyDown) return true
+      return false
+    })
+  }, [keepOpenHotkeyDown])
 
   const onSelect = useCallback((currentValueJoined:CBSelectEncodedValue|string) => {
     const { value: currentValue } = decodeOption(currentValueJoined)
-    console.log({ currentValue })
-    setOpen(false)
+    handleOpenChange(false)
+
     if (single) {
       onChange(currentValue === internalValue[0] ? '' : currentValue)
-      // setInternalValue(currentValue === value ? [] : [currentValue])
       return
     }
 
     if (internalValue.indexOf(currentValue) === -1) {
-      console.log('combobox onSelect add', currentValue, internalValue)
-      // setInternalValue([...internalValue, currentValue])
       onChange([...internalValue, currentValue])
       return
     }
-    console.log('combobox onSelect remove', currentValue, internalValue)
+
     onChange(internalValue.filter((val) => val !== currentValue))
-    // setInternalValue()
-  }, [internalValue, onChange, single])
-  console.log('combobox', { value, internalValue, open, options })
+  }, [internalValue, onChange, single, handleOpenChange])
+
+  React.useEffect(() => {
+    const hotkeyMatchesEvent = (event:KeyboardEvent) => hotkey.some((key) => !!(event as any)[key] || event.code === key || event.key === key)
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.repeat) return
+      setKeepOpenHotkeyDown(previous => previous || hotkeyMatchesEvent(event))
+    }
+    const handleKeyUp = (event: KeyboardEvent) => {
+      const hotkeyMatches = hotkeyMatchesEvent(event)
+      if (hotkeyMatches) setKeepOpenHotkeyDown(false)
+    }
+    if (inFocus) document.addEventListener('keydown', handleKeyDown)
+    document.addEventListener('keyup', handleKeyUp)
+    return () => {
+      if (inFocus) document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [hotkey, inFocus])
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild onFocus={() => {
+        console.log('onFocus')
+        handleFocusChange(true)
+      }}
+      >
           <Button
           type="button"
           variant="outline"
@@ -110,7 +149,10 @@ export const ComboBoxSelect = ({ value, options, onChange, single, selectedRende
           })}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0" align="start">
+      <PopoverContent className="w-[200px] p-0" align="start" onBlur={() => {
+        console.log('onBlur')
+        handleFocusChange(false)
+      }}>
         <Command>
           <CommandInput placeholder="Search option..." />
           <CommandEmpty>No option found.</CommandEmpty>

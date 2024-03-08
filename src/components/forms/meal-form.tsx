@@ -159,6 +159,7 @@ export function MealForm ({ values, onSubmit: onSubmitInput, drinkOptions, label
                   single={false}
                   value={field.value?.map(x => x.toString())}
                   onChange={field.onChange}
+                  onBlur={field.onBlur}
                   options={labelOptions}
                   selectedRender={({ value, label }) => <Badge>{label}</Badge>}/>
               </FormControl>
