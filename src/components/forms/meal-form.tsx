@@ -1,5 +1,5 @@
 'use client'
-
+import React from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -17,6 +17,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { ComboBoxSelect } from '../ui/combobox-select'
 import { Badge } from '../ui/badge'
+import { NestedPartial } from '@/types/NestedPartial'
 
 const createOptionalStringSchema = (minLength: number = 5, message = `Min length is ${minLength}`) => z
   .union([z.string().length(0), z.string().min(minLength, {
@@ -32,8 +33,8 @@ const formSchema = z.object({
   starter: z.string().min(5, {
     message: 'Starter must be at least 5 characters.'
   }),
-  desert: createOptionalStringSchema(5, 'Desert name must be at least 5 characters.'),
-  description: createOptionalStringSchema(15, 'Description must be at least 15 characters.'),
+  desert: createOptionalStringSchema(3, 'Desert name must be at least 3 characters.').optional(),
+  description: createOptionalStringSchema(15, 'Description must be at least 15 characters.').optional(),
   img: z.string().optional(),
   price: z.coerce.number().positive(),
   labels: z.array(z.number()).optional(),
@@ -54,27 +55,27 @@ const defaultValues = {
 }
 
 type MealFormProps = {
-  values?:MealFormValues,
-  onSubmit?: (values: MealFormValues) => void,
+  values?: NestedPartial<MealFormValues> & Pick<MealFormValues, 'title' | 'starter' | 'price'>
+  initialValues?: NestedPartial<MealFormValues>
+  onSubmit?: (values: MealFormValues) => Promise<void>,
   drinkOptions: { value: string, label: string }[],
   labelOptions: { value: string, label: string }[],
 }
 
-export function MealForm ({ values, onSubmit: onSubmitInput, drinkOptions, labelOptions }:MealFormProps) {
+export function MealForm ({ values, initialValues, onSubmit: onSubmitInput, drinkOptions, labelOptions }:MealFormProps) {
   const form = useForm<MealFormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues,
+    defaultValues: { ...defaultValues, ...initialValues },
     values
   })
-  function onSubmit (values: MealFormValues) {
+
+  async function onSubmit (values: MealFormValues) {
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
-
-    // @TODO: create more complex form for selecting labels and drinks
-    values.labels = [37, 38, 39, 40]
-    // values.drinks = [16, 17, 18]
-    console.log(values)
-    if (typeof onSubmitInput === 'function') onSubmitInput(values)
+    if (typeof onSubmitInput === 'function') {
+      // setDisabled(true)
+      await onSubmitInput(values)
+    }
   }
 
   return (
@@ -167,7 +168,7 @@ export function MealForm ({ values, onSubmit: onSubmitInput, drinkOptions, label
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        <Button type="submit" disabled={form.formState.isSubmitting}>Submit</Button>
       </form>
     </Form>
   )
