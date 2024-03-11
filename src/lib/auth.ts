@@ -11,6 +11,12 @@ import prisma from '@/lib/db'
 if (!process.env.GOOGLE_ID || !process.env.GOOGLE_SECRET) {
   throw new Error('GOOGLE_ID and GOOGLE_SECRET must be defined')
 }
+
+const defaultAdmins = process.env.NEXTAUTH_ADMIN_EMAILS?.split(',') ?? []
+const shouldBeAdmin = (email:string) => {
+  return defaultAdmins.includes(email)
+}
+
 export const authOptions: AuthOptions = {
   adapter: PrismaAdapter(prisma) as any,
   providers: [
@@ -19,10 +25,31 @@ export const authOptions: AuthOptions = {
     //   clientSecret: process.env.GITHUB_SECRET
     // }),
     Google({
+      profile (profile:any) {
+        return {
+          role: (shouldBeAdmin(profile.email) && 'admin') || (profile.role ?? 'guest'),
+          id: profile.sub,
+          name: profile.name,
+          email: profile.email,
+          image: profile.picture
+        }
+      },
       clientId: process.env.GOOGLE_ID,
       clientSecret: process.env.GOOGLE_SECRET
     })
-  ]
+  ],
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: 'database'
+  },
+
+  callbacks: {
+    session ({ session, user }) {
+      if (typeof session.user === 'undefined') return session
+      session.user.role = user.role
+      return session
+    }
+  }
 }
 
 export const getServerSession = () => getServerSessionNative(authOptions)
