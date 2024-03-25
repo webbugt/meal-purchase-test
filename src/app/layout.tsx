@@ -2,11 +2,13 @@ import React from 'react'
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { getServerSession } from 'next-auth/next'
+import { redirect } from 'next/navigation'
 
+import { authOptions } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 import NextAuthProvider from '@/components/next-auth-provider'
-import { getServerSession } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { Header } from '@/components/navigation'
 const fontSans = Inter({
   subsets: ['latin'],
   variable: '--font-sans'
@@ -22,8 +24,7 @@ export default async function RootLayout ({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const session = await getServerSession()
-  console.log('layout session', session)
+  const session = await getServerSession(authOptions)
   if (!session) {
     return redirect('/api/auth/signin')
   }
@@ -33,7 +34,10 @@ export default async function RootLayout ({
         'min-h-screen bg-background font-sans antialiased',
         fontSans.variable
       )}>
-        <NextAuthProvider>{children}</NextAuthProvider>
+        <NextAuthProvider>
+          <Header />
+          {children}
+          </NextAuthProvider>
       </body>
     </html>
   )

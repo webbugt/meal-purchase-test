@@ -69,9 +69,9 @@ export const ComboBoxSelect = ({ value, options, onChange, single, selectedRende
   }, [value])
 
   const [keepOpenHotkeyDown, setKeepOpenHotkeyDown] = useState(false)
-  useEffect(() => {
-    console.log('keepOpenHotkeyDown', { keepOpenHotkeyDown, inFocus })
-  }, [keepOpenHotkeyDown, inFocus])
+  // useEffect(() => {
+  //   console.log('keepOpenHotkeyDown', { keepOpenHotkeyDown, inFocus })
+  // }, [keepOpenHotkeyDown, inFocus])
 
   const handleOpenChange = useCallback((popoverOpen: boolean) => {
     setOpen(previous => {
@@ -120,7 +120,6 @@ export const ComboBoxSelect = ({ value, options, onChange, single, selectedRende
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild onFocus={() => {
-        console.log('onFocus')
         handleFocusChange(true)
       }}
       >
@@ -150,7 +149,6 @@ export const ComboBoxSelect = ({ value, options, onChange, single, selectedRende
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-[200px] p-0" align="start" onBlur={() => {
-        console.log('onBlur')
         handleFocusChange(false)
       }}>
         <Command>

@@ -1,4 +1,5 @@
-import { AuthOptions, getServerSession as getServerSessionNative } from 'next-auth'
+// import { getServerSession as getServerSessionNative } from 'next-auth/next'
+import { AuthOptions } from 'next-auth'
 
 import Google from 'next-auth/providers/google'
 
@@ -14,6 +15,7 @@ if (!process.env.GOOGLE_ID || !process.env.GOOGLE_SECRET) {
 
 const defaultAdmins = process.env.NEXTAUTH_ADMIN_EMAILS?.split(',') ?? []
 const shouldBeAdmin = (email:string) => {
+  console.log(email, defaultAdmins)
   return defaultAdmins.includes(email)
 }
 
@@ -51,5 +53,3 @@ export const authOptions: AuthOptions = {
     }
   }
 }
-
-export const getServerSession = () => getServerSessionNative(authOptions)

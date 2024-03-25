@@ -1,11 +1,13 @@
+'use server'
 import Image from 'next/image'
 import { getMeals } from './actions'
+// import { SignOutButton } from './SignOutButton'
+
 export default async function Home () {
-  console.log('home')
   const availableMeals = await getMeals()
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-
+    {/* <SignOutButton /> */}
       <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
         {availableMeals.map((meal) => {
           return (
